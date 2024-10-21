@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    int pipe1[2], pipe2[2];
+    pid_t pid;
+    int dni;
+    char letra;
+
+   
+    if (pipe(pipe1) == -1 || pipe(pipe2) == -1) {
+        perror("Error al crear los pipes");
+        exit(EXIT_FAILURE);
+    }
+
+   
+    pid = fork();
+
+    if (pid < 0) {
+        perror("Error al hacer fork");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid == 0) { 
+        close(pipe1[0]);  
+        close(pipe2[1]);  
+        printf("Introduce el número de tu DNI: ");
+        scanf("%d", &dni);
+        write(pipe1[1], &dni, sizeof(dni));
+        close(pipe1[1]);  
+        read(pipe2[0], &letra, sizeof(letra));
+        close(pipe2[0]); 
+
+        printf("La letra del NIF es %c\n", letra);
+
+        exit(0);  
+    } else {  
+        close(pipe1[1]); 
+        close(pipe2[0]);  
+
+      
+        read(pipe1[0], &dni, sizeof(dni));
+        close(pipe1[0]);  
+        
+        char letras[] = "TRWAGMYFPDXBNJZSQVHLCKE";
+        letra = letras[dni % 23]; 
+
+        write(pipe2[1], &letra, sizeof(letra));
+        close(pipe2[1]); 
+        wait(NULL);
+    }
+
+    return 0;
+}
