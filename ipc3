@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <time.h>
+
+int main() {
+    int pipefd[2];
+    pid_t pid;
+    int numeros[2];  
+    if (pipe(pipefd) == -1) {
+        perror("Error al crear el pipe");
+        exit(EXIT_FAILURE);
+    }
+    pid = fork();
+
+    if (pid < 0) {
+        perror("Error al hacer fork");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid == 0) {  
+        close(pipefd[0]);  
+
+       
+        srand(time(NULL));  
+        numeros[0] = rand() % 50 + 1;
+        numeros[1] = rand() % 50 + 1;
+
+        write(pipefd[1], numeros, sizeof(numeros));
+        close(pipefd[1]); 
+        exit(0); 
+    } else { 
+        close(pipefd[1]);  
+
+       
+        read(pipefd[0], numeros, sizeof(numeros));
+        close(pipefd[0]); 
+        wait(NULL);
+        int num1 = numeros[0];
+        int num2 = numeros[1];
+
+        printf("%d + %d = %d\n", num1, num2, num1 + num2);
+        printf("%d - %d = %d\n", num1, num2, num1 - num2);
+        printf("%d * %d = %d\n", num1, num2, num1 * num2);
+      
+        if (num2 != 0) {
+            printf("%d / %d = %d\n", num1, num2, num1 / num2);
+        } else {
+            printf("División por cero no permitida\n");
+        }
+    }
+
+    return 0;
+}
