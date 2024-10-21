@@ -1,0 +1,61 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <sys/types.h>  
+
+
+int main() {
+    int pipefd[2];
+    pid_t pid;
+    char buffer;
+    int suma = 0, numero = 0;
+
+    
+    if (pipe(pipefd) == -1) {
+        perror("Error al crear el pipe");
+        exit(EXIT_FAILURE);
+    }
+
+    
+    pid = fork();
+
+    if (pid < 0) {
+        perror("Error al hacer fork");
+        exit(EXIT_FAILURE);
+    }
+
+    if (pid > 0) {
+        
+        close(pipefd[0]);  
+        
+        write(pipefd[1], "10 20 30 40 +", 13);
+        close(pipefd[1]);  
+
+        
+        wait(NULL);
+    } else {
+      
+        close(pipefd[1]); 
+
+        while (read(pipefd[0], &buffer, 1) > 0) {
+            if (isdigit(buffer)) {
+                numero = numero * 10 + (buffer - '0');  
+            } else if (buffer == ' ') {
+                suma += numero;  
+                printf("Número recibido: %d\n", numero);
+                numero = 0; 
+            } else if (buffer == '+') {
+                suma += numero;  
+                printf("Número recibido: %d\n", numero);
+                break; 
+            }
+        }
+
+        close(pipefd[0]);  
+        
+        printf("Suma total: %d\n", suma);
+    }
+
+    return 0;
+}
