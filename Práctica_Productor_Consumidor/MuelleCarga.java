@@ -15,7 +15,7 @@ import java.util.Random;
                 }
             }
             combustible += litros;
-            System.out.println("Práctica_Productor_Consumidor.Productor ha llenado " + litros + " litros. Combustible total en depósito: " + combustible);
+            System.out.println("Productor ha llenado " + litros + " litros. Combustible total en depósito: " + combustible);
             notifyAll(); // Notifica a los camiones que pueden cargar
         }
         // Método sincronizado para que un camión cargue combustible
